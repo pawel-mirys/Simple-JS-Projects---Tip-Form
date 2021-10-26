@@ -1,7 +1,12 @@
 const inputs = document.querySelectorAll('.form-control');
 const btn = document.querySelector('.btn');
-const feedback = document.querySelector('.feedback');
-let billTotal;
+const result = document.querySelector('.results');
+const tipAmount = document.querySelector('#tip-amount');
+const totalAmount = document.querySelector('#total-amount');
+const personAmount = document.querySelector('#person-amount');
+const loader = document.querySelector('.loader');
+
+let billValue;
 let peopleValue;
 let serviceValue;
 let isValid = false;
@@ -20,7 +25,7 @@ const services = [
     title: 'bad = 5%',
   },
   {
-    value: 3,
+    value: 4,
     title: `I don't want to give a tip.`,
   },
 ];
@@ -36,20 +41,21 @@ inputs.forEach((input) => {
   input.addEventListener('input', (e) => {
     switch (e.target.id) {
       case 'input-bill':
-        billTotal = e.target.value;
+        billValue = parseInt(e.target.value);
         break;
       case 'input-users':
-        peopleValue = e.target.value;
+        peopleValue = parseInt(e.target.value);
         break;
       case 'input-service':
-        serviceValue = e.target.value;
+        serviceValue = parseInt(e.target.value);
     }
-    console.log(billTotal, peopleValue, serviceValue);
+    console.log(billValue, peopleValue, serviceValue);
   });
 });
 
 const formValidation = () => {
-  const createMessage = (message) => {
+  const feedback = document.querySelector('.feedback');
+  const errorMessage = (message) => {
     feedback.classList.add('showItem', 'alert-danger');
     const newMessage = document.createElement('p');
     newMessage.textContent = message;
@@ -62,20 +68,69 @@ const formValidation = () => {
       btn.disabled = false;
     }, 2000);
   };
-  if (billTotal === undefined || '') {
-    createMessage('Bill Input cannot be blank!');
+  if (billValue === undefined || '') {
+    errorMessage('Bill Ammount cannot be blank!');
   }
   if (peopleValue === undefined || '') {
-    createMessage('People Input must be greater then 0!');
+    errorMessage('Number of users must be greater than 0!');
   }
   if (serviceValue === undefined || 0) {
-    createMessage('U need to choose the option!');
+    errorMessage('You Need To Select A Option!');
   } else {
     isValid = true;
+  }
+};
+
+const calc = () => {
+  let tip = 0;
+  let total = 0;
+  let person = 0;
+  if (serviceValue === 1) {
+    tip = billValue * 0.2;
+  } else if (serviceValue === 2) {
+    tip = billValue * 0.1;
+  } else if (serviceValue === 3) {
+    tip = billValue * 0.05;
+  } else if (serviceValue === 4) {
+    tip = billValue * 1;
+  }
+  total = billValue + tip;
+  person = total / peopleValue;
+  console.log(tip, total, person);
+
+  const showResult = () => {
+    loader.classList.add('showItem');
+    setTimeout(() => {
+      loader.classList.remove('showItem');
+      result.classList.add('showItem');
+      tipAmount.innerText = tip.toFixed(2);
+      totalAmount.innerText = total.toFixed(2);
+      personAmount.innerText = person.toFixed(2);
+    }, 2000);
+    setTimeout(() => {
+      result.classList.remove('showItem');
+    }, 10000);
+  };
+  if (isValid === true) {
+    showResult();
+    // Clear inputs
+    const clear = (() => {
+      billValue = 0;
+      peopleValue = 0;
+      serviceValue = 0;
+      isValid = false;
+      inputs.forEach((input) => {
+        input.value = '';
+        if (input[2]) {
+          input.value = 0;
+        }
+      });
+    })();
   }
 };
 
 btn.addEventListener('click', (e) => {
   e.preventDefault();
   formValidation();
+  calc();
 });
