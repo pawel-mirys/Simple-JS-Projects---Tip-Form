@@ -6,10 +6,12 @@ const totalAmount = document.querySelector('#total-amount');
 const personAmount = document.querySelector('#person-amount');
 const loader = document.querySelector('.loader');
 
-let billValue;
-let peopleValue;
-let serviceValue;
-let isValid = false;
+let formValues = {
+  billValue: 0,
+  peopleValue: 0,
+  serviceValue: 0,
+  isValid: false,
+};
 
 const services = [
   {
@@ -41,15 +43,15 @@ inputs.forEach((input) => {
   input.addEventListener('input', (e) => {
     switch (e.target.id) {
       case 'input-bill':
-        billValue = parseInt(e.target.value);
+        formValues.billValue = parseInt(e.target.value);
         break;
       case 'input-users':
-        peopleValue = parseInt(e.target.value);
+        formValues.peopleValue = parseInt(e.target.value);
         break;
       case 'input-service':
-        serviceValue = parseInt(e.target.value);
+        formValues.serviceValue = parseInt(e.target.value);
     }
-    console.log(billValue, peopleValue, serviceValue);
+    console.log(Object.values(formValues));
   });
 });
 
@@ -60,77 +62,88 @@ const formValidation = () => {
     const newMessage = document.createElement('p');
     newMessage.textContent = message;
     feedback.appendChild(newMessage);
-    isValid = false;
     btn.disabled = true;
+    formValues.isValid = false;
     setTimeout(() => {
       feedback.classList.remove('showItem', 'alert-danger');
       newMessage.remove();
       btn.disabled = false;
-    }, 2000);
+    }, 5000);
   };
-  if (billValue === undefined || '') {
+  if (formValues.billValue === 0 || NaN) {
     errorMessage('Bill Ammount cannot be blank!');
   }
-  if (peopleValue === undefined || '') {
+  if (formValues.peopleValue === 0 || NaN) {
     errorMessage('Number of users must be greater than 0!');
   }
-  if (serviceValue === undefined || 0) {
-    errorMessage('You Need To Select A Option!');
-  } else {
-    isValid = true;
+  if (formValues.serviceValue === 0 || NaN) {
+    errorMessage('You Need To Select An Option!');
+  }
+  if (
+    !!formValues.billValue &&
+    !!formValues.peopleValue &&
+    !!formValues.serviceValue
+  ) {
+    formValues.isValid = true;
   }
 };
 
 const calc = () => {
-  let tip = 0;
-  let total = 0;
-  let person = 0;
-  if (serviceValue === 1) {
-    tip = billValue * 0.2;
-  } else if (serviceValue === 2) {
-    tip = billValue * 0.1;
-  } else if (serviceValue === 3) {
-    tip = billValue * 0.05;
-  } else if (serviceValue === 4) {
-    tip = billValue * 1;
-  }
-  total = billValue + tip;
-  person = total / peopleValue;
-  console.log(tip, total, person);
+  if (formValues.isValid === true) {
+    let tip = 0;
+    let total = 0;
+    let person = 0;
+    switch (formValues.serviceValue) {
+      case 1:
+        tip = formValues.billValue * 0.2;
+        break;
+      case 2:
+        tip = formValues.billValue * 0.1;
+        break;
+      case 3:
+        tip = formValues.billValue * 0.05;
+        break;
+      case 4:
+        tip = formValues.billValue * 1;
+        break;
+    }
 
-  const showResult = () => {
-    loader.classList.add('showItem');
-    setTimeout(() => {
-      loader.classList.remove('showItem');
-      result.classList.add('showItem');
-      tipAmount.innerText = tip.toFixed(2);
-      totalAmount.innerText = total.toFixed(2);
-      personAmount.innerText = person.toFixed(2);
-    }, 2000);
-    setTimeout(() => {
-      result.classList.remove('showItem');
-    }, 10000);
-  };
-  if (isValid === true) {
-    showResult();
-    // Clear inputs
-    const clear = (() => {
-      billValue = 0;
-      peopleValue = 0;
-      serviceValue = 0;
-      isValid = false;
-      inputs.forEach((input) => {
-        input.value = '';
-        if (input[2]) {
-          input.value = 0;
-        }
-      });
+    total = formValues.billValue + tip;
+    person = total / formValues.peopleValue;
+    console.log(tip, total, person);
+
+    const showResult = (() => {
+      loader.classList.add('showItem');
+      setTimeout(() => {
+        loader.classList.remove('showItem');
+        result.classList.add('showItem');
+        tipAmount.innerText = tip.toFixed(2);
+        totalAmount.innerText = total.toFixed(2);
+        personAmount.innerText = person.toFixed(2);
+      }, 2000);
+      setTimeout(() => {
+        result.classList.remove('showItem');
+      }, 10000);
     })();
   }
+};
+const clear = () => {
+  formValues.billValue = 0;
+  formValues.peopleValue = 0;
+  formValues.serviceValue = 0;
+  formValues.isValid = false;
+  inputs.forEach((input) => {
+    input.value = '';
+    if (input[2]) {
+      input.value = 0;
+    }
+  });
 };
 
 btn.addEventListener('click', (e) => {
   e.preventDefault();
   formValidation();
   calc();
+  console.log(formValues.isValid);
+  clear();
 });
